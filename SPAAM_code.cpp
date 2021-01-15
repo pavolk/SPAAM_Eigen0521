@@ -397,6 +397,5 @@ int main()
 	//cout<<nsvd.projectionDLTImpl()<<endl;
 	//cout<<"--------The GL reprojection cam is:----"<<endl;
 	
-	system("pause");
 	return 0;
 }
