@@ -6,4 +6,9 @@ if (UNIX)
 elseif (WIN32)
     add_executable(spaam_tool_eigen SPAAM_code.cpp)
     target_link_libraries(spaam_tool_eigen CONAN_PKG::eigen)
+
+    add_library(spaam STATIC SPAAM_code.cpp spaam.cpp)
+    target_include_directories(spaam PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(spaam  PUBLIC CONAN_PKG::opencv 
+                                 PRIVATE CONAN_PKG::eigen)
 endif ()
