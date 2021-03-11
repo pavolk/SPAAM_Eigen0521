@@ -61,7 +61,7 @@ private:
 	MatrixXd ProjMat_3x4;
 
 public:
-	double ProjGL3x4[16];//GLÍ¶Ó°¾ØÕó
+	double ProjGL3x4[16];//GLÍ¶Ó°ï¿½ï¿½ï¿½ï¿½
 	vector<Correspondence_Pair,aligned_allocator<Correspondence_Pair>> corr_points;
 
 public:	
@@ -69,6 +69,16 @@ public:
 	{
 		cout<<"SVD solver initialized"<<endl;
 	}
+
+	SPAAM_SVD(const MatrixXd& projMat) 
+		: modMatrixScreen(3,3)
+		, modMatrixWorld(4,4)
+		, ProjMat_3x4(projMat)
+	{
+		cout<<"SVD solver initialized"<<endl;
+	}
+
+
 	~SPAAM_SVD()
 	{
 
@@ -89,7 +99,7 @@ public:
 		for(vector<Correspondence_Pair,aligned_allocator<Correspondence_Pair>>::const_iterator it(corr_points.begin());it<corr_points.end();++it)
 		{
 			fromShift = fromShift + (*it).worldPoint;
-			fromScale = fromScale + (*it).worldPoint.cwiseProduct((*it).worldPoint);//Èç¹ûÎ¬Êý´íÁË£¬±àÒëÎÞ·¨Í¨¹ý
+			fromScale = fromScale + (*it).worldPoint.cwiseProduct((*it).worldPoint);//ï¿½ï¿½ï¿½Î¬ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ·ï¿½Í¨ï¿½ï¿½
 			toShift = toShift + (*it).screenPoint;
 			toScale = toScale + (*it).screenPoint.cwiseProduct((*it).screenPoint);
 		}
@@ -170,10 +180,10 @@ public:
 		//O(2*corr_points.size()-1)=1;
 
 		/********************************************************************
-		lapackÖÐµÄSVDµ÷ÓÃ·½·¨£º
+		lapackï¿½Ðµï¿½SVDï¿½ï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½
 		boost::numeric::bindings::lapack::gesvd('N','A',A,s,U,Vt);A-jacobi;s-eigenvals;U-eigenvectors;Vt-solution
 		
-		EigenÖÐSVDµÄµ÷ÓÃ·½·¨£º
+		Eigenï¿½ï¿½SVDï¿½Äµï¿½ï¿½Ã·ï¿½ï¿½ï¿½ï¿½ï¿½
 
 		method1:
 		
@@ -208,13 +218,13 @@ public:
 		generateNormalizationMatrix( );
 		//cout<<"----------The uncorrected ProjMat_3x4 is:-------"<<endl<<ProjMat_3x4<<endl;
 		//const ublas::matrix< double, boost::numeric::ublas::column_major > toCorrect(( modMatrixScreen ));
-		///Õâ¾ä¿ÉÄÜÓÐÎÊÌâ£¬²»ÁË½âublas¾ØÕóµÄ³õÊ¼»¯·½Ê½,ublasÖÐ£¬Ò»´ÎÀ¨ºÅÊÇ¾ØÕócopyÊ½µÄ³õÊ¼»¯£¬Á½´ÎÊÇÊ²Ã´ÄØ£¿
-		///Ôö¼ÓÀ¨ºÅ£¬²»Ó°Ïì½á¹û 061517
+		///ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½â£¬ï¿½ï¿½ï¿½Ë½ï¿½ublasï¿½ï¿½ï¿½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ê½,ublasï¿½Ð£ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½copyÊ½ï¿½Ä³ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê²Ã´ï¿½Ø£ï¿½
+		///ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½Ó°ï¿½ï¿½ï¿½ï¿½ 061517
 		MatrixXd toCorrect((modMatrixScreen));
 		MatrixXd Ptemp(3,4);
 		Ptemp = toCorrect*ProjMat_3x4;
 		MatrixXd fromCorrect((modMatrixWorld));
-		ProjMat_3x4 = Ptemp*fromCorrect;///nolias¿ÉÄÜÖ»ÊÇÄÚ´æÓÅ»¯µÄ·½·¨
+		ProjMat_3x4 = Ptemp*fromCorrect;///noliasï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Å»ï¿½ï¿½Ä·ï¿½ï¿½ï¿½
 
 		double fViewDirLen = sqrt(ProjMat_3x4(2,0)*ProjMat_3x4(2,0)+ProjMat_3x4(2,1)*ProjMat_3x4(2,1)+ProjMat_3x4(2,2)*ProjMat_3x4(2,2));
 		const VectorXd p1st(corr_points[0].worldPoint);
@@ -227,17 +237,14 @@ public:
 		return ProjMat_3x4;
 	}
 
-
-	//´Ó±ê¶¨²ÎÊý´´½¨·´Í¶Ó°Ïà»ú
+	//ï¿½Ó±ê¶¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¶Ó°ï¿½ï¿½ï¿½
 	void BuildGLMatrix3x4(float ne,float fr,int right,int left,int top,int bottom)
 	{
-		ProjGL3x4[0] = ProjMat_3x4(0, 0); ProjGL3x4[1] = ProjMat_3x4(0, 1); ProjGL3x4[2] = ProjMat_3x4(0, 2); ProjGL3x4[3] = ProjMat_3x4(0, 3);
-		ProjGL3x4[4] = ProjMat_3x4(1, 0); ProjGL3x4[5] = ProjMat_3x4(1, 1); ProjGL3x4[6] = ProjMat_3x4(1, 2); ProjGL3x4[7] = ProjMat_3x4(1, 3);
-		ProjGL3x4[8] = ProjMat_3x4(2, 0); ProjGL3x4[9] = ProjMat_3x4(2, 1); ProjGL3x4[10] = ProjMat_3x4(2, 2); ProjGL3x4[11] = ProjMat_3x4(2, 3);
+		ProjGL3x4[0] = ProjMat_3x4(0, 0); 	ProjGL3x4[1] = ProjMat_3x4(0, 1); 	ProjGL3x4[2] = ProjMat_3x4(0, 2);  	ProjGL3x4[3] = ProjMat_3x4(0, 3);
+		ProjGL3x4[4] = ProjMat_3x4(1, 0); 	ProjGL3x4[5] = ProjMat_3x4(1, 1); 	ProjGL3x4[6] = ProjMat_3x4(1, 2);  	ProjGL3x4[7] = ProjMat_3x4(1, 3);
+		ProjGL3x4[8] = ProjMat_3x4(2, 0); 	ProjGL3x4[9] = ProjMat_3x4(2, 1); 	ProjGL3x4[10] = ProjMat_3x4(2, 2); 	ProjGL3x4[11] = ProjMat_3x4(2, 3);
 
 		double* aproj = ProjGL3x4;//aproj 4x4
-		double* proj4x4 = new double[16];
-
 		constructProjectionMatrix4x4_(aproj,aproj,ne,fr,right,left,top,bottom);
 	}
 private:
@@ -261,6 +268,15 @@ private:
 		proj4x4[11] *= (-fr - ne);
 		proj4x4[11] += add;	
 
+		std::cerr << "proj4x4=" << std::endl;
+		for (int i = 0; i < 16; i++) {
+			if (i > 0 && (i%4) == 0) {
+				std::cout << std::endl;
+			}
+			std::cout << proj4x4[i] << " ";
+		}
+		std::cout << std::endl;
+
 		//Create Orthographic projection matrix//
 		double* ortho = new double[16];
 		ortho[0] = 2.0f / (right - left);
@@ -281,7 +297,7 @@ private:
 		ortho[15] = 1.0f;
 
 		//Multiply the 4x4 projection by the orthographic projection//
-		///¿ÉÒÔÓÃEigenÖÐµÄcwiseproduct´úÌæ
+		///ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Eigenï¿½Ðµï¿½cwiseproductï¿½ï¿½ï¿½ï¿½
 		final[0] = ortho[0]*proj4x4[0] + ortho[1]*proj4x4[4] + ortho[2]*proj4x4[8] + ortho[3]*proj4x4[12];
 		final[1] = ortho[0]*proj4x4[1] + ortho[1]*proj4x4[5] + ortho[2]*proj4x4[9] + ortho[3]*proj4x4[13];
 		final[2] = ortho[0]*proj4x4[2] + ortho[1]*proj4x4[6] + ortho[2]*proj4x4[10] + ortho[3]*proj4x4[14];
@@ -307,12 +323,16 @@ private:
 		proj4x4[8] = final[2]; proj4x4[9] = final[6]; proj4x4[10] = final[10]; proj4x4[11] = final[14];
 		proj4x4[12] = final[3]; proj4x4[13] = final[7]; proj4x4[14] = final[11]; proj4x4[15] = final[15];
 
+		std::cerr << "final=" << std::endl;
 		//copy final matrix values//
-		for (int i = 0; i < 16; i++)
-		{
+		for (int i = 0; i < 16; i++) {
+			if (i > 0 && (i%4) == 0) {
+				std::cout << std::endl;
+			}
 			final[i] = proj4x4[i];
-			cout<<"the i-th item of proj4x4 is: "<<final[i]; 
+			std::cout << final[i] << " ";
 		}
+		std::cout << std::endl;
 
 		//clean up//
 		delete [] ortho;

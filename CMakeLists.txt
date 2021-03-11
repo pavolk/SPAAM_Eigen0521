@@ -12,3 +12,6 @@ elseif (WIN32)
     target_link_libraries(spaam  PUBLIC CONAN_PKG::opencv 
                                  PRIVATE CONAN_PKG::Eigen3)
 endif ()
+
+add_executable(spaam_test spaam_test.cpp)
+target_link_libraries(spaam_test PRIVATE spaam)

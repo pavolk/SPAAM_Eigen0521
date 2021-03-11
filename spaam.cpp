@@ -10,6 +10,8 @@
 #include <opencv2/core/eigen.hpp>
 
 
+namespace spaam {
+
 cv::Mat calculateProjectionMatrix(const Corresponcences& corr)
 {
 
@@ -27,5 +29,35 @@ cv::Mat calculateProjectionMatrix(const Corresponcences& corr)
     cv::Mat retv;
     cv::eigen2cv(m, retv);
     return retv;
+}
+
+void calculateOpenGlProjectionMatrix(const cv::Mat& display_matrix, const OrthoProjectionParams& params, double projection_matrix[16])
+{
+#if 1
+    double znear = params.znear, zfar = params.zfar;
+
+    auto tl = params.rect.tl();
+    double top = tl.y, left = tl.x;
+
+    auto br = params.rect.br();
+    double bottom = br.y, right = br.x;
+#else
+    double znear = 0.01;    
+    double zfar = 10.0;
+    double right = 0;       //640;
+    double left = 640;      //0;
+    double top = 0;         //720;
+    double bottom = 720;    //0;
+#endif
+    Eigen::MatrixXd m;
+    cv::cv2eigen(display_matrix, m);
+    std::cout << "m=" << m << std::endl;
+
+    SPAAM_SVD nsvd(m);
+    nsvd.BuildGLMatrix3x4(znear, zfar, right, left, top, bottom);
+    
+    std::memcpy(projection_matrix, nsvd.ProjGL3x4, 16*sizeof(double));
+}
+
 }
 
